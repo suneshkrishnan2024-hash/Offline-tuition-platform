@@ -101,4 +101,36 @@ router.post("/approve/:classId/:studentId", authMiddleware, async (req, res) => 
     res.status(500).json({ message: "Server error" });
   }
 });
+const QRCode = require("qrcode");
+
+router.get("/qr/:classId", authMiddleware, async (req, res) => {
+  try {
+    const { classId } = req.params;
+
+    const foundClass = await Class.findById(classId);
+
+    if (!foundClass) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    // Only teacher can generate QR
+    if (foundClass.teacher.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const joinURL = `${process.env.BASE_URL}/api/class/join/${classId}`;
+
+    const qrCode = await QRCode.toDataURL(joinURL);
+
+    res.json({
+      message: "QR generated",
+      qr: qrCode,
+      url: joinURL
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = router;

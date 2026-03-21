@@ -6,12 +6,16 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
 const classRoutes = require("./routes/class");
 const marksRoutes = require("./routes/marks");
+const announcementRoutes = require("./routes/announcement");
+const eventRoutes = require("./routes/event");
 
 const app = express();
 
 app.use(express.json());
+app.use("/api/announcement", announcementRoutes);
 app.use("/api/marks", marksRoutes);
 app.use("/api/class", classRoutes);
+app.use("/api/event", eventRoutes);
 // Connect routes
 app.use("/api/auth", authRoutes);
 
