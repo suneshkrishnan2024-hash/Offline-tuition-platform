@@ -1,13 +1,40 @@
+require("dotenv").config();
+
+const authMiddleware = require("./middleware/authMiddleware");
 const express = require("express");
+const mongoose = require("mongoose");
+const authRoutes = require("./routes/auth");
+
 const app = express();
 
 app.use(express.json());
+
+// Connect routes
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is running 🚀");
 });
 
-const PORT = 5000;
+app.get("/protected", authMiddleware, (req, res) => {
+  res.json({
+    message: "Access granted",
+    user: req.user
+  });
+});
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected ✅");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection failed ❌");
+    console.error(err);
+  });
+
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
