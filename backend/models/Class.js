@@ -25,6 +25,14 @@ const classSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+
+    // 🔥 ADD THIS
+    documents: [
+      {
+        fileUrl: String,
+        fileName: String,
+      },
+    ],
   },
   { timestamps: true }
 );

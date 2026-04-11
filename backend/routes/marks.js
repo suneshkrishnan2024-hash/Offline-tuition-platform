@@ -5,7 +5,8 @@ const Class = require("../models/Class");
 
 const router = express.Router();
 
-// Upload marks (teacher only)
+
+// ================== UPLOAD MARKS ==================
 router.post("/upload", authMiddleware, async (req, res) => {
   try {
     if (req.user.role !== "teacher") {
@@ -20,14 +21,13 @@ router.post("/upload", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    // 🔐 Only class teacher can upload
     if (foundClass.teacher.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
     const newMarks = await Marks.create({
       student: studentId,
-      class: classId,
+      class: classId, // ✅ FIXED
       testName,
       marksObtained,
       totalMarks,
@@ -44,9 +44,10 @@ router.post("/upload", authMiddleware, async (req, res) => {
   }
 });
 
+
+// ================== STUDENT MARKS ==================
 router.get("/my", authMiddleware, async (req, res) => {
   try {
-    // Only students
     if (req.user.role !== "student") {
       return res.status(403).json({ message: "Only students can view marks" });
     }
@@ -65,5 +66,30 @@ router.get("/my", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
+// ================== CLASS-WISE MARKS ==================
+router.get("/class/:classId", authMiddleware, async (req, res) => {
+  try {
+    const { classId } = req.params;
+
+    // 🔥 GET ALL MARKS OF STUDENT
+    const allMarks = await Marks.find({
+      student: req.user.id,
+    });
+
+    // 🔥 FILTER IN BACKEND (SAFE)
+    const filtered = allMarks.filter(
+      (m) => m.class.toString() === classId
+    );
+
+    res.json({ marks: filtered });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching marks" });
+  }
+});
+
 
 module.exports = router;
